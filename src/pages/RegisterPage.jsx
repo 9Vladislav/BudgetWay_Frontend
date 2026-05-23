@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
-import { registerUser } from "../api/auth";
+import { loginUser, registerUser } from "../api/auth";
 
 export function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -51,11 +51,18 @@ export function RegisterPage() {
     try {
       setIsLoading(true);
 
-      const data = await registerUser(formData);
+      await registerUser(formData);
 
-      if (data?.token) {
-        localStorage.setItem("jwt-token", data.token);
+      const loginData = await loginUser({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (!loginData?.token) {
+        throw new Error("Не вдалося автоматично увійти в акаунт");
       }
+
+      localStorage.setItem("jwt-token", loginData.token);
 
       navigate("/home");
     } catch (err) {
